@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  # Сервис для Telegram-бота
+  bot:
+    build: .
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}           # Токен из .env файла
+      - DB_URL=postgresql://postgres:password@db:5432/bot_db
+    depends_on:
+      - db
+    restart: unless-stopped               # Автоперезапуск при падении
+
+  # Сервис для PostgreSQL
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password       # Пароль для БД
+      - POSTGRES_DB=bot_db               # Имя базы данных
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Постоянное хранилище данных
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql  # SQL-скрипт для инициализации
+    ports:
+      - "5432:5432"                      # Проброс порта (опционально)
+
+volumes:
+  postgres_data:                         # Именованный том для данных БД
